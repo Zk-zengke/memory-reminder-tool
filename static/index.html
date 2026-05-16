@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>记忆提醒工具</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main id="authView" class="auth-shell">
+      <section class="auth-panel">
+        <div class="brand-row">
+          <div class="brand-mark">M</div>
+          <div>
+            <h1>记忆提醒工具</h1>
+            <p>把今天要记住的东西，安排到明天和以后。</p>
+          </div>
+        </div>
+
+        <form id="authForm" class="auth-form">
+          <input id="nameInput" class="hidden" type="text" autocomplete="name" placeholder="昵称" />
+          <input id="emailInput" type="email" autocomplete="email" placeholder="邮箱" required />
+          <input id="passwordInput" type="password" autocomplete="current-password" placeholder="密码" required minlength="6" />
+          <button id="authSubmit" type="submit">登录</button>
+        </form>
+
+        <div class="auth-switch">
+          <button id="toggleAuth" type="button">创建新账号</button>
+          <span id="authMessage" role="status"></span>
+        </div>
+      </section>
+    </main>
+
+    <main id="appView" class="app-shell hidden">
+      <aside class="sidebar">
+        <div class="brand-row compact">
+          <div class="brand-mark">M</div>
+          <div>
+            <strong>记忆库</strong>
+            <span id="userLabel"></span>
+          </div>
+        </div>
+
+        <nav class="view-tabs" aria-label="视图">
+          <button class="tab-button active" data-view="today" type="button">今日</button>
+          <button class="tab-button" data-view="due" type="button">到点</button>
+          <button class="tab-button" data-view="upcoming" type="button">未来</button>
+          <button class="tab-button" data-view="all" type="button">全部</button>
+          <button class="tab-button" data-view="archived" type="button">归档</button>
+        </nav>
+
+        <div class="side-block">
+          <label for="tagFilter">标签</label>
+          <select id="tagFilter">
+            <option value="">全部标签</option>
+          </select>
+        </div>
+
+        <button id="enableNotify" class="ghost-button" type="button">开启通知</button>
+        <button id="logoutButton" class="ghost-button" type="button">退出登录</button>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <h2 id="viewTitle">今日复习</h2>
+            <p id="viewSubtitle">今天需要看到的内容会在这里排好。</p>
+          </div>
+          <div class="search-box">
+            <span>⌕</span>
+            <input id="searchInput" type="search" placeholder="搜索内容" />
+          </div>
+        </header>
+
+        <form id="cardForm" class="composer">
+          <textarea id="contentInput" rows="4" placeholder="写下要记住的内容" required></textarea>
+          <div class="composer-grid">
+            <input id="tagsInput" type="text" placeholder="标签，用逗号分隔" />
+            <select id="importanceInput" aria-label="重要程度">
+              <option value="2">普通</option>
+              <option value="3">重要</option>
+              <option value="1">轻量</option>
+            </select>
+            <input id="nextReviewInput" type="datetime-local" aria-label="提醒时间" />
+            <button type="submit">＋ 添加</button>
+          </div>
+        </form>
+
+        <section class="stats-row" aria-label="统计">
+          <div>
+            <strong id="todayCount">0</strong>
+            <span>今日</span>
+          </div>
+          <div>
+            <strong id="dueCount">0</strong>
+            <span>到点</span>
+          </div>
+          <div>
+            <strong id="visibleCount">0</strong>
+            <span>当前</span>
+          </div>
+        </section>
+
+        <section id="cardList" class="card-list" aria-live="polite"></section>
+      </section>
+    </main>
+
+    <template id="cardTemplate">
+      <article class="memory-card">
+        <div class="card-head">
+          <div>
+            <h3></h3>
+            <p class="card-meta"></p>
+          </div>
+          <span class="importance-pill"></span>
+        </div>
+        <p class="card-content"></p>
+        <div class="tag-row"></div>
+        <div class="card-actions">
+          <button data-action="remembered" type="button">记住了</button>
+          <button data-action="fuzzy" type="button">模糊</button>
+          <button data-action="forgotten" type="button">没记住</button>
+          <button data-action="archive" type="button">归档</button>
+          <button data-action="restore" type="button">恢复</button>
+          <button data-action="delete" type="button">删除</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

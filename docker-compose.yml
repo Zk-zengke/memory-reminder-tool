@@ -1,0 +1,15 @@
+services:
+  memory-reminder:
+    build: .
+    container_name: memory-reminder
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      APP_TZ: Asia/Shanghai
+      MEMORY_DB_PATH: /app/data/memory.sqlite3
+      ALLOW_REGISTRATION: "true"
+    volumes:
+      - ./data:/app/data
