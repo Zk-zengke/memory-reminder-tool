@@ -245,6 +245,10 @@ def clear_cookie_header() -> str:
     return f"{COOKIE_NAME}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax"
 
 
+def registration_allowed() -> bool:
+    return os.environ.get("ALLOW_REGISTRATION", "true").lower() not in {"0", "false", "no"}
+
+
 def compute_next_interval(row: sqlite3.Row, result: str) -> tuple[int, str]:
     current = max(1, int(row["interval_days"] or 1))
     review_count = max(0, int(row["review_count"] or 0))
@@ -484,8 +488,12 @@ class MemoryHandler(BaseHTTPRequestHandler):
             self.send_json(200, {"user": self.current_user()})
             return
 
+        if method == "GET" and path == "/api/auth/config":
+            self.send_json(200, {"registrationAllowed": registration_allowed()})
+            return
+
         if method == "POST" and path == "/api/auth/register":
-            if os.environ.get("ALLOW_REGISTRATION", "true").lower() in {"0", "false", "no"}:
+            if not registration_allowed():
                 raise HttpError(403, "当前服务器已关闭新用户注册")
             data = self.read_json()
             email = str(data.get("email", "")).strip().lower()

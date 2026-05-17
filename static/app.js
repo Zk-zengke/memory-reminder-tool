@@ -7,6 +7,7 @@ const state = {
   cards: [],
   tags: [],
   notifySeen: new Set(),
+  registrationAllowed: true,
 };
 
 const els = {
@@ -96,6 +97,22 @@ function showAuth() {
   state.user = null;
   els.authView.classList.remove("hidden");
   els.appView.classList.add("hidden");
+  els.toggleAuth.classList.toggle("hidden", !state.registrationAllowed);
+  if (!state.registrationAllowed && state.mode === "register") {
+    state.mode = "login";
+    updateAuthMode();
+  }
+}
+
+function updateAuthMode() {
+  const isRegister = state.mode === "register";
+  els.nameInput.classList.toggle("hidden", !isRegister);
+  els.passwordConfirmInput.classList.toggle("hidden", !isRegister);
+  els.passwordConfirmInput.required = isRegister;
+  els.authSubmit.textContent = isRegister ? "注册并进入" : "登录";
+  els.toggleAuth.textContent = isRegister ? "已有账号，去登录" : "创建新账号";
+  els.toggleAuth.classList.toggle("hidden", !state.registrationAllowed);
+  els.passwordInput.autocomplete = isRegister ? "new-password" : "current-password";
 }
 
 function toDatetimeLocal(date) {
@@ -252,14 +269,11 @@ async function submitAuth(event) {
 }
 
 function toggleAuthMode() {
+  if (!state.registrationAllowed) {
+    return;
+  }
   state.mode = state.mode === "login" ? "register" : "login";
-  const isRegister = state.mode === "register";
-  els.nameInput.classList.toggle("hidden", !isRegister);
-  els.passwordConfirmInput.classList.toggle("hidden", !isRegister);
-  els.passwordConfirmInput.required = isRegister;
-  els.authSubmit.textContent = isRegister ? "注册并进入" : "登录";
-  els.toggleAuth.textContent = isRegister ? "已有账号，去登录" : "创建新账号";
-  els.passwordInput.autocomplete = isRegister ? "new-password" : "current-password";
+  updateAuthMode();
   els.passwordInput.value = "";
   els.passwordConfirmInput.value = "";
   setAuthMessage("");
@@ -373,6 +387,9 @@ async function init() {
   });
 
   try {
+    const config = await api("/api/auth/config");
+    state.registrationAllowed = config.registrationAllowed !== false;
+    updateAuthMode();
     const payload = await api("/api/auth/me");
     if (payload.user) {
       showApp(payload.user);
