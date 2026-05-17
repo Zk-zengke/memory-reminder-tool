@@ -6,6 +6,7 @@ import hmac
 import json
 import mimetypes
 import os
+import re
 import secrets
 import smtplib
 import sqlite3
@@ -31,6 +32,7 @@ APP_PORT = int(os.environ.get("APP_PORT", "8000"))
 COOKIE_NAME = "memory_sid"
 SESSION_DAYS = 30
 PASSWORD_ITERATIONS = 220_000
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class HttpError(Exception):
@@ -127,6 +129,22 @@ def verify_password(password: str, stored: str) -> bool:
         return hmac.compare_digest(actual, expected)
     except Exception:
         return False
+
+
+def validate_email(email: str) -> None:
+    if not EMAIL_RE.match(email) or len(email) > 120:
+        raise HttpError(400, "邮箱格式不正确")
+
+
+def validate_password_strength(password: str) -> None:
+    if len(password) < 8:
+        raise HttpError(400, "密码至少需要 8 位")
+    if len(password) > 128:
+        raise HttpError(400, "密码不能超过 128 位")
+    if password.strip() != password:
+        raise HttpError(400, "密码开头和结尾不能有空格")
+    if password.isdigit() or password.isalpha():
+        raise HttpError(400, "密码需要同时包含字母和数字或符号")
 
 
 def get_db() -> sqlite3.Connection:
@@ -473,10 +491,11 @@ class MemoryHandler(BaseHTTPRequestHandler):
             email = str(data.get("email", "")).strip().lower()
             name = str(data.get("name", "")).strip() or email.split("@")[0]
             password = str(data.get("password", ""))
-            if "@" not in email or len(email) > 120:
-                raise HttpError(400, "邮箱格式不正确")
-            if len(password) < 6:
-                raise HttpError(400, "密码至少需要 6 位")
+            password_confirm = data.get("passwordConfirm")
+            validate_email(email)
+            validate_password_strength(password)
+            if password_confirm is not None and password != str(password_confirm):
+                raise HttpError(400, "两次输入的密码不一致")
             with get_db() as conn:
                 try:
                     cursor = conn.execute(
@@ -493,6 +512,7 @@ class MemoryHandler(BaseHTTPRequestHandler):
             data = self.read_json()
             email = str(data.get("email", "")).strip().lower()
             password = str(data.get("password", ""))
+            validate_email(email)
             with get_db() as conn:
                 row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
                 if not row or not verify_password(password, row["password_hash"]):

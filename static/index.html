@@ -20,7 +20,8 @@
         <form id="authForm" class="auth-form">
           <input id="nameInput" class="hidden" type="text" autocomplete="name" placeholder="昵称" />
           <input id="emailInput" type="email" autocomplete="email" placeholder="邮箱" required />
-          <input id="passwordInput" type="password" autocomplete="current-password" placeholder="密码" required minlength="6" />
+          <input id="passwordInput" type="password" autocomplete="current-password" placeholder="密码" required minlength="8" />
+          <input id="passwordConfirmInput" class="hidden" type="password" autocomplete="new-password" placeholder="确认密码" minlength="8" />
           <button id="authSubmit" type="submit">登录</button>
         </form>
 

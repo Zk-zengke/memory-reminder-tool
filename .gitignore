@@ -2,6 +2,9 @@ data/
 __pycache__/
 *.pyc
 .env
+.env.*
+!.env.example
+!.env.production.example
 .venv/
 node_modules/
 server.*.log

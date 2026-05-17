@@ -16,6 +16,7 @@ const els = {
   nameInput: document.querySelector("#nameInput"),
   emailInput: document.querySelector("#emailInput"),
   passwordInput: document.querySelector("#passwordInput"),
+  passwordConfirmInput: document.querySelector("#passwordConfirmInput"),
   authSubmit: document.querySelector("#authSubmit"),
   toggleAuth: document.querySelector("#toggleAuth"),
   authMessage: document.querySelector("#authMessage"),
@@ -66,6 +67,22 @@ async function api(path, options = {}) {
 function setAuthMessage(message, isError = false) {
   els.authMessage.textContent = message;
   els.authMessage.style.color = isError ? "var(--rose)" : "var(--muted)";
+}
+
+function validatePassword(password, passwordConfirm) {
+  if (state.mode !== "register") {
+    return "";
+  }
+  if (password.length < 8) {
+    return "密码至少需要 8 位";
+  }
+  if (/^\d+$/.test(password) || /^[A-Za-z]+$/.test(password)) {
+    return "密码需要同时包含字母和数字或符号";
+  }
+  if (password !== passwordConfirm) {
+    return "两次输入的密码不一致";
+  }
+  return "";
 }
 
 function showApp(user) {
@@ -208,12 +225,18 @@ async function loadCounts() {
 async function submitAuth(event) {
   event.preventDefault();
   setAuthMessage("");
+  const passwordError = validatePassword(els.passwordInput.value, els.passwordConfirmInput.value);
+  if (passwordError) {
+    setAuthMessage(passwordError, true);
+    return;
+  }
   const payload = {
     email: els.emailInput.value.trim(),
     password: els.passwordInput.value,
   };
   if (state.mode === "register") {
     payload.name = els.nameInput.value.trim();
+    payload.passwordConfirm = els.passwordConfirmInput.value;
   }
   try {
     const result = await api(`/api/auth/${state.mode === "register" ? "register" : "login"}`, {
@@ -232,9 +255,13 @@ function toggleAuthMode() {
   state.mode = state.mode === "login" ? "register" : "login";
   const isRegister = state.mode === "register";
   els.nameInput.classList.toggle("hidden", !isRegister);
+  els.passwordConfirmInput.classList.toggle("hidden", !isRegister);
+  els.passwordConfirmInput.required = isRegister;
   els.authSubmit.textContent = isRegister ? "注册并进入" : "登录";
   els.toggleAuth.textContent = isRegister ? "已有账号，去登录" : "创建新账号";
   els.passwordInput.autocomplete = isRegister ? "new-password" : "current-password";
+  els.passwordInput.value = "";
+  els.passwordConfirmInput.value = "";
   setAuthMessage("");
 }
 
